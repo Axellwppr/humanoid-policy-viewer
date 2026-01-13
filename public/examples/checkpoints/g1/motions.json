@@ -1,0 +1,74 @@
+{
+  "format": "tracking-motion-index-v1",
+  "base_path": "./motions",
+  "motions": [
+    {
+      "name": "dance1_subject1",
+      "file": "dance1_subject1.json"
+    },
+    {
+      "name": "dance2_subject1",
+      "file": "dance2_subject1.json"
+    },
+    {
+      "name": "fallAndGetUp1_subject1",
+      "file": "fallAndGetUp1_subject1.json"
+    },
+    {
+      "name": "fallAndGetUp2_subject2",
+      "file": "fallAndGetUp2_subject2.json"
+    },
+    {
+      "name": "fight1_subject2",
+      "file": "fight1_subject2.json"
+    },
+    {
+      "name": "fightAndSports1_subject1",
+      "file": "fightAndSports1_subject1.json"
+    },
+    {
+      "name": "jumps1_subject1",
+      "file": "jumps1_subject1.json"
+    },
+    {
+      "name": "run1_subject2",
+      "file": "run1_subject2.json"
+    },
+    {
+      "name": "run2_subject1",
+      "file": "run2_subject1.json"
+    },
+    {
+      "name": "sprint1_subject2",
+      "file": "sprint1_subject2.json"
+    },
+    {
+      "name": "walk1_subject1",
+      "file": "walk1_subject1.json"
+    },
+    {
+      "name": "walk2_subject1",
+      "file": "walk2_subject1.json"
+    },
+    {
+      "name": "walk3_subject1",
+      "file": "walk3_subject1.json"
+    },
+    {
+      "name": "default",
+      "file": "default.json"
+    },
+    {
+      "name": "Balance_CMU_49_18_amass",
+      "file": "49_18.json"
+    },
+    {
+      "name": "Exercise_CMU_13_29_amass",
+      "file": "13_29.json"
+    },
+    {
+      "name": "TaiChi_CMU_12_04_amass",
+      "file": "12_04.json"
+    }
+  ]
+}
