@@ -196,7 +196,16 @@ export class MuJoCoDemo {
               const kp = this.kpPolicy ? this.kpPolicy[i] : 0.0;
               const kd = this.kdPolicy ? this.kdPolicy[i] : 0.0;
               const torque = kp * (targetJpos - this.simulation.qpos[qpos_adr]) + kd * (0 - this.simulation.qvel[qvel_adr]);
-              this.simulation.ctrl[ctrl_adr] = torque;
+              let ctrlValue = torque;
+              const ctrlRange = this.model?.actuator_ctrlrange;
+              if (ctrlRange && ctrlRange.length >= (ctrl_adr + 1) * 2) {
+                const min = ctrlRange[ctrl_adr * 2];
+                const max = ctrlRange[(ctrl_adr * 2) + 1];
+                if (Number.isFinite(min) && Number.isFinite(max) && min < max) {
+                  ctrlValue = Math.min(Math.max(ctrlValue, min), max);
+                }
+              }
+              this.simulation.ctrl[ctrl_adr] = ctrlValue;
             }
           } else if (this.control_type === 'torque') {
             console.error('Torque control not implemented yet.');
