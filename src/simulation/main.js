@@ -34,11 +34,11 @@ export class MuJoCoDemo {
 
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.001, 100);
     this.camera.name = 'PerspectiveCamera';
-    this.camera.position.set(2.0, 1.7, 1.7);
+    this.camera.position.set(3.0, 2.2, 3.0);
     this.scene.add(this.camera);
 
     this.scene.background = new THREE.Color(0.15, 0.25, 0.35);
-    this.scene.fog = new THREE.Fog(this.scene.background, 15, 25.5);
+    this.scene.fog = null;
 
     this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
     this.ambientLight.name = 'AmbientLight';
@@ -71,6 +71,17 @@ export class MuJoCoDemo {
 
     this.dragStateManager = new DragStateManager(this.scene, this.renderer, this.camera, this.container.parentElement, this.controls);
 
+    this.followEnabled = false;
+    this.followHeight = 0.75;
+    this.followLerp = 0.05;
+    this.followTarget = new THREE.Vector3();
+    this.followTargetDesired = new THREE.Vector3();
+    this.followDelta = new THREE.Vector3();
+    this.followOffset = new THREE.Vector3();
+    this.followInitialized = false;
+    this.followBodyId = null;
+    this.followDistance = this.camera.position.distanceTo(this.controls.target);
+
     this.lastSimState = {
       bodies: new Map(),
       lights: new Map(),
@@ -89,12 +100,14 @@ export class MuJoCoDemo {
   async init() {
     await downloadExampleScenesFolder(this.mujoco);
     await this.reloadScene('g1/g1.xml');
+    this.updateFollowBodyId();
     await this.reloadPolicy(defaultPolicy);
     this.alive = true;
   }
 
   async reload(mjcf_path) {
     await this.reloadScene(mjcf_path);
+    this.updateFollowBodyId();
     this.timestep = this.model.opt.timestep;
     this.decimation = Math.max(1, Math.round(0.02 / this.timestep));
 
@@ -102,6 +115,55 @@ export class MuJoCoDemo {
 
     await this.reloadPolicy(this.currentPolicyPath ?? defaultPolicy);
     this.alive = true;
+  }
+
+  setFollowEnabled(enabled) {
+    this.followEnabled = Boolean(enabled);
+    this.followInitialized = false;
+    if (this.followEnabled) {
+      this.followOffset.subVectors(this.camera.position, this.controls.target);
+      if (this.followOffset.lengthSq() === 0) {
+        this.followOffset.set(0, 0, 1);
+      }
+      this.followOffset.setLength(this.followDistance);
+      this.camera.position.copy(this.controls.target).add(this.followOffset);
+      this.controls.update();
+    }
+  }
+
+  updateFollowBodyId() {
+    if (Number.isInteger(this.pelvis_body_id)) {
+      this.followBodyId = this.pelvis_body_id;
+      return;
+    }
+    if (this.model && this.model.nbody > 1) {
+      this.followBodyId = 1;
+    }
+  }
+
+  updateCameraFollow() {
+    if (!this.followEnabled) {
+      return;
+    }
+    const bodyId = Number.isInteger(this.followBodyId) ? this.followBodyId : null;
+    if (bodyId === null) {
+      return;
+    }
+    const cached = this.lastSimState.bodies.get(bodyId);
+    if (!cached) {
+      return;
+    }
+    this.followTargetDesired.set(cached.position.x, this.followHeight, cached.position.z);
+    if (!this.followInitialized) {
+      this.followTarget.copy(this.followTargetDesired);
+      this.followInitialized = true;
+    } else {
+      this.followTarget.lerp(this.followTargetDesired, this.followLerp);
+    }
+
+    this.followDelta.subVectors(this.followTarget, this.controls.target);
+    this.controls.target.copy(this.followTarget);
+    this.camera.position.add(this.followDelta);
   }
 
   async main_loop() {
@@ -306,6 +368,7 @@ export class MuJoCoDemo {
     }
     this._lastRenderTime = now;
 
+    this.updateCameraFollow();
     this.controls.update();
 
     for (const [b, cached] of this.lastSimState.bodies) {

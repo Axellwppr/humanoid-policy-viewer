@@ -26,7 +26,7 @@
   </div>
   <div v-if="!isSmallScreen" class="controls">
     <v-card class="controls-card">
-      <v-card-title>G1 Tracking Live Demo</v-card-title>
+      <v-card-title>General Tracking Demo</v-card-title>
       <v-card-text class="py-0 controls-body">
           <v-btn
             href="https://github.com/Axellwppr/humanoid-policy-viewer"
@@ -189,6 +189,18 @@
         </div>
 
         <v-divider class="my-2"/>
+        <div class="status-legend follow-controls">
+          <span class="status-name">Camera follow</span>
+          <v-btn
+            size="x-small"
+            variant="tonal"
+            color="primary"
+            :disabled="state !== 1"
+            @click="toggleCameraFollow"
+          >
+            {{ cameraFollowEnabled ? 'On' : 'Off' }}
+          </v-btn>
+        </div>
         <div class="status-legend">
           <span class="status-name">Render scale</span>
           <span class="text-caption">{{ renderScaleLabel }}</span>
@@ -281,6 +293,7 @@ export default {
     motionUploadMessage: '',
     motionUploadType: 'success',
     showUploadOptions: false,
+    cameraFollowEnabled: true,
     renderScale: 2.0,
     simStepHz: 0,
     isSmallScreen: false,
@@ -424,6 +437,7 @@ export default {
       try {
         const mujoco = await loadMujoco();
         this.demo = new MuJoCoDemo(mujoco);
+        this.demo.setFollowEnabled?.(this.cameraFollowEnabled);
         await this.demo.init();
         this.demo.main_loop();
         this.demo.params.paused = false;
@@ -539,6 +553,12 @@ export default {
         this.motionUploadType = badCount > 0 ? 'warning' : 'success';
       }
       this.motionUploadFiles = [];
+    },
+    toggleCameraFollow() {
+      this.cameraFollowEnabled = !this.cameraFollowEnabled;
+      if (this.demo?.setFollowEnabled) {
+        this.demo.setFollowEnabled(this.cameraFollowEnabled);
+      }
     },
     onMotionChange(value) {
       if (!this.demo) {
